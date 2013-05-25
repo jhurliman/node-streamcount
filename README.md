@@ -61,10 +61,10 @@ pageCounts.increment('/product1');
 console.dir(pageCounts.getTopK());
 ```
 
-## Documentation
+## streamcount Documentation
 
 <a name="createUniquesCounter" />
-### streamcount.createUniquesCounter
+### createUniquesCounter
 
 Creates an object for tracking the approximate total number of unique IDs
 observed. A common example is estimating the number of unique visitors to
@@ -77,7 +77,7 @@ __Arguments__
   default.
 
 <a name="createViewsCounter" />
-### streamcount.createViewsCounter
+### createViewsCounter
 
 Creates an object for tracking estimated top view counts for many unique
 IDs. A common example is tracking the most viewed products on a website.
@@ -95,7 +95,7 @@ __Arguments__
   accuracy / memory usage tradeoff. 0.0001 is the default.
 
 <a name="getUniquesObjSize" />
-### streamcount.getUniquesObjSize
+### getUniquesObjSize
 
 Returns the serialized size of a uniques counter (HyperLogLog) object in
 bytes given a stdError. __NOTE:__ The memory usage will be higher than this
@@ -107,7 +107,7 @@ __Arguments__
   requirements for.
 
 <a name="getViewsObjSize" />
-### streamcount.getViewsObjSize
+### getViewsObjSize
 
 Returns the serialized size of a views counter (CountMinSketch) object in
 bytes given an errFactor and failRate. __NOTE:__ This does not include the size
@@ -123,13 +123,22 @@ __Arguments__
 * failRate - Parameter to createViewsCounter() to estimate storage requirements
   for.
 
+## HyperLogLog Documentation
+
 <a name="HyperLogLog" />
-### streamcount.HyperLogLog
+### HyperLogLog
 
 Initializes a HyperLogLog object. Takes the same parameters as
 [createUniquesCounter](#createUniquesCounter).
 
-### streamcount.HyperLogLog.add
+__Example__
+
+```js
+var HyperLogLog = require('streamcount').HyperLogLog;
+var uniques = new HyperLogLog();
+```
+
+### add
 
 Add a member to the set.
 
@@ -137,17 +146,17 @@ __Arguments__
 
 * key - String identifier to add to the set.
 
-### streamcount.HyperLogLog.count
+### count
 
 Count the number of unique members in the set. Returns the estimated
 cardinality of the set.
 
-### streamcount.HyperLogLog.serialize
+### serialize
 
 Serializes this data structure to a binary buffer. Returns a binary Buffer
 holding the serialized form of this structure.
 
-### streamcount.HyperLogLog.deserialize
+### HyperLogLog.deserialize
 
 Static method to deserialize a binary buffer into a reconstituted HyperLogLog
 structure.
@@ -164,7 +173,7 @@ __Example__
 var uniques = HyperLogLog.deserialize(bufferData);
 ```
 
-### streamcount.HyperLogLog.merge
+### merge
 
 Merge another HyperLogLog structure of the same size into this one. This makes
 it possible to keep a local HyperLogLog object in memory on each webserver, and
@@ -175,13 +184,22 @@ __Arguments__
 
 * hyperLogLog - The other HyperLogLog object to merge in.
 
+## CountMinSketch Documentation
+
 <a name="CountMinSketch" />
-### streamcount.CountMinSketch
+### CountMinSketch
 
 Initializes a CountMinSketch object. Takes the same parameters as
 [createViewsCounter](#createViewsCounter).
 
-### streamcount.CountMinSketch.increment
+__Example__
+
+```js
+var CountMinSketch = require('streamcount').CountMinSketch;
+var topten = new CountMinSketch(10);
+```
+
+### increment
 
 Record an observation of the given key.
 
@@ -189,19 +207,19 @@ __Arguments__
 
 * key - String identifier to increment the observation count for.
 
-### streamcount.CountMinSketch.getTopK
+### getTopK
 
 Returns a sorted list of tuples containing the estimated frequency count
 and key for the maxEntries top observed members. Returns an array of length
 topEntryCount, containing arrays of length 2 where the first value is the
 estimated frequency count and the second value is the given key.
 
-### streamcount.CountMinSketch.serialize
+### serialize
 
 Serializes this data structure to a binary buffer. Returns a binary Buffer
 holding the serialized form of this structure.
 
-### streamcount.CountMinSketch.deserialize
+### CountMinSketch.deserialize
 
 Static method to deserialize a binary buffer into a reconstituted
 CountMinSketch structure.
