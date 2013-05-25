@@ -1,0 +1,16 @@
+{
+  "name": "node-sketch",
+  "version": "1.0.0",
+  "author": "John Hurliman <jhurliman@jhurliman.org> (http://jhurliman.org/)",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "main": "./index",
+  "scripts": {
+    "test": "vows --spec"
+  },
+  "devDependencies": {
+    "assert": "0.4.9",
+    "vows": "0.7.0"
+  }
+}
