@@ -1,9 +1,9 @@
 {
-  "name": "node-sketch",
+  "name": "node-streamcount",
   "version": "1.0.0",
   "author": "John Hurliman <jhurliman@jhurliman.org> (http://jhurliman.org/)",
-  "description": "",
-  "keywords": [],
+  "description": "Provides implementations of sketch algorithms for real-time counting of stream data. Useful for real-time web analytics and other streaming or big data scenarios.",
+  "keywords": ["analytics", "metrics", "countminsketch", "hyperloglog", "sketch", "realtime"],
   "license": "MIT",
   "main": "./index",
   "scripts": {
