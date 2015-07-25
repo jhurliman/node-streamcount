@@ -59,7 +59,7 @@ vows.describe('CountMinSketch').addBatch({
       var top = cms.getTopK();
 
       var packed = cms.serialize();
-      assert.equal(packed.length, 218120);
+      assert.equal(packed.length, 328320);
 
       var cms2 = CountMinSketch.deserialize(packed);
       var top2 = cms2.getTopK();
