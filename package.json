@@ -1,6 +1,6 @@
 {
   "name": "streamcount",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "John Hurliman <jhurliman@jhurliman.org> (http://jhurliman.org/)",
   "description": "Provides implementations of sketch algorithms for real-time counting of stream data. Useful for real-time web analytics and other streaming or big data scenarios.",
   "keywords": ["analytics", "metrics", "countminsketch", "hyperloglog", "sketch", "realtime"],
@@ -10,7 +10,15 @@
     "test": "vows --spec"
   },
   "devDependencies": {
-    "assert": "0.4.9",
-    "vows": "0.7.0"
-  }
+    "assert": "1.3.0",
+    "vows": "0.8.1"
+  },
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhurliman/node-streamcount.git"
+  },
+  "homepage": "https://github.com/jhurliman/node-streamcount"
 }
