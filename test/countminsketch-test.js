@@ -18,7 +18,7 @@ vows.describe('CountMinSketch').addBatch({
       assert.equal(top[0][0], 1);
       assert.equal(top[0][1], '4d6e5acebcd1b3fac0000000');
     },
-    'can increment': function(cms) {
+    'can increment by 1': function(cms) {
       cms.increment('4d6e5acebcd1b3fac0000000');
       cms.increment('4d6e5acebcd1b3fac0000000');
 
@@ -26,6 +26,19 @@ vows.describe('CountMinSketch').addBatch({
       assert.equal(top.length, 1);
       assert.equal(top[0][0], 3);
       assert.equal(top[0][1], '4d6e5acebcd1b3fac0000000');
+    },
+    'can increment by a given number': function(cms) {
+      cms.increment('4d6e5acebcd1b3fac0000000', 2);
+      cms.increment('4d6e5acebcd1b3fac0000000', 3);
+      cms.increment('4d6e5acebcd1b3fac0000000', 0);
+
+      var top = cms.getTopK();
+      assert.equal(top.length, 1);
+      assert.equal(top[0][0], 8);
+      assert.equal(top[0][1], '4d6e5acebcd1b3fac0000000');
+    },
+    'returns an exception when increment number is negative': function(cms) {
+      assert.throws(() => cms.increment('4d6e5acebcd1b3fac0000000', -2), Error);
     },
     'can add 1000000': function(cms) {
       var i;
