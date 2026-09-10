@@ -19,7 +19,6 @@
     "prepublishOnly": "npm test"
   },
   "devDependencies": {
-    "@types/node": "^24.13.4",
     "typescript": "^7.0.2"
   },
   "engines": {
@@ -37,5 +36,8 @@
     "index.d.ts",
     "SERIALIZATION.md"
   ],
-  "types": "./index.d.ts"
+  "types": "./index.d.ts",
+  "dependencies": {
+    "@types/node": "^24.13.4"
+  }
 }

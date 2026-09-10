@@ -42,7 +42,7 @@ CMS.deserialize('bytes');
     fs.writeFileSync(path.join(dir,'consumer.cts'),types);
     fs.writeFileSync(path.join(dir,'consumer.mts'),types);
     const tsc = path.join(root,'node_modules/typescript/bin/tsc');
-    const common = [tsc,'--strict','--noEmit','--target','es2022','--typeRoots',path.join(root,'node_modules/@types'),'--types','node'];
+    const common = [tsc,'--strict','--noEmit','--target','es2022'];
     run(process.execPath,common.concat(['--module','nodenext','--moduleResolution','nodenext','consumer.cts','consumer.mts']));
     // Also exercise Node16 module resolution.
     fs.writeFileSync(path.join(dir,'consumer.ts'),types);
