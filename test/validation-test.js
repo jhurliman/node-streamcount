@@ -121,3 +121,15 @@ test('invalid merge sources reject before modifying the destination', () => {
   const source=new HLL(.2);source.M[0]=2;source.M[source.M.length-1]=100;
   assert.throws(()=>target.merge(source));assert.deepEqual(target.serialize(),before);
 });
+
+test('signed-minimum hashes address valid buckets', () => {
+  const hashing = require('../lib/hashing');
+  const original = hashing.fnv1a;
+  try {
+    hashing.fnv1a = () => -2147483648;
+    const sketch = new CMS(2,.2,.1);
+    sketch.increment('edge'); sketch.increment('edge');
+    assert.deepEqual(sketch.getTopK(), [[2,'edge']]);
+    assert.deepEqual(CMS.deserialize(sketch.serialize()).getTopK(), [[2,'edge']]);
+  } finally { hashing.fnv1a = original; }
+});

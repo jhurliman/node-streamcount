@@ -13,5 +13,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm pack
+
+  runtime-floor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 6
+      - run: node test/runtime-smoke.js
