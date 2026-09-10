@@ -4,7 +4,8 @@ export interface DeserializeOptions { maxEntries?: number; }
 /** Constructors return structural counter objects, not instanceof-compatible instances. */
 export class CountMinSketch {
   constructor(maxEntries: number, epsilon: number, delta: number);
-  increment(key: string): void;
+  /** Add a nonnegative uint32 integer weight (default 1); zero is a no-op. */
+  increment(key: string, incrementBy?: number): void;
   getTopK(): Array<[count: number, key: string]>;
   serialize(options?: SerializeOptions): Buffer;
   static deserialize(buffer: Buffer, start?: number, length?: number, options?: DeserializeOptions): CountMinSketch;

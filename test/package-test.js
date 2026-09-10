@@ -23,7 +23,9 @@ import HLL = require('streamcount/lib/hyperLogLog');
 import Heap = require('streamcount/lib/minHeap');
 import Random = require('streamcount/lib/prng');
 const views: api.CountMinSketch = new CMS(10, .1, .1);
-views.increment('key');
+views.increment('key'); views.increment('key', 5);
+// @ts-expect-error weights must be numbers
+views.increment('key', '5');
 const rows: Array<[number,string]> = views.getTopK();
 const restored = CMS.deserialize(views.serialize({legacy:true}), undefined, undefined, {maxEntries:10});
 const uniques: api.HyperLogLog = new HLL(.1); uniques.merge(api.createUniquesCounter());
