@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 (release candidate)
 
 - Count keys such as `__proto__`, `constructor` and `toString` without interacting with Object.prototype.
 - Return independent top-k tuples so callers cannot modify internal sketch state.
@@ -11,7 +11,7 @@
 
 ### Release compatibility
 
-Runtime minimum becomes Node 6 because Buffer.alloc is now used; test development requires modern Node (CI: 22/24/26). Dropping previously advertised Node 0.6 support requires a major release. No version has been bumped yet. Top-k tie ordering is unspecified and may change. The follow-up below adds versioned serialization and validates malformed inputs. See SERIALIZATION.md for legacy import/export and the major-release migration.
+Runtime minimum becomes Node 6 because Buffer.alloc is now used; test development requires modern Node (CI: 22/24/26). Dropping previously advertised Node 0.6 support requires a major release. The package version is prepared as 2.0.0; publication is pending. Top-k tie ordering is unspecified and may change. The follow-up below adds versioned serialization and validates malformed inputs. See SERIALIZATION.md for legacy import/export and the major-release migration.
 
 ## Release validation follow-up
 
@@ -20,3 +20,5 @@ Runtime minimum becomes Node 6 because Buffer.alloc is now used; test developmen
 - Reject overflowing counters atomically and validate HLL merges before mutation.
 - Fix the signed-minimum hash bucket edge case and retain the existing mapping for all other hashes.
 - Add legacy golden fixtures and tests for truncation, malformed metadata, invalid Unicode, capacity preservation and overflow.
+
+- Add complete root/deep-import TypeScript declarations, packed runtime/type consumer tests, a Node 6 runtime-floor check, and remove the obsolete Travis matrix identified in review.

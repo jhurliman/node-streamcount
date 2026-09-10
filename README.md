@@ -112,7 +112,7 @@ __Arguments__
 Returns the serialized size of a views counter (CountMinSketch) object in
 bytes given an errFactor and failRate. __NOTE:__ This does not include the size
 of the serialized MinHeap which includes the size of each unique ID (up to a
-max of topEntryCount) plus 5 bytes overhead per entry. __NOTE2:__ The memory
+max of topEntryCount) plus 8 bytes overhead per entry. __NOTE2:__ The memory
 usage will be higher than this number since we serialize 32-bit integers but
 JavaScript uses 64-bit numbers.
 
@@ -235,3 +235,11 @@ __Example__
 ```js
 var pageCounts = CountMinSketch.deserialize(bufferData);
 ```
+
+## Version 2 migration and release checks
+
+Version 2 writes capacity-preserving CMS2 sketches by default. Old files remain readable; old readers need `serialize({ legacy: true })`. See [SERIALIZATION.md](SERIALIZATION.md) for layouts, allocation/input bounds and recovering the capacity of partially filled legacy sketches. Explicit zero/null/NaN options no longer silently select defaults.
+
+TypeScript declarations cover the package root and existing class/helper deep imports. Node TypeScript projects need `@types/node`. Runtime compatibility starts at Node 6; development and the complete test suite use Node 22 or newer. CI runs the full suite on 22/24/26 and a separate Node 6 runtime smoke test.
+
+Before releasing: `npm ci`, `npm test`, then review the archive produced by `npm pack`. The test suite itself installs the archive into an independent consumer, checks CommonJS/ESM and compiles NodeNext/Node16 TypeScript fixtures. `npm publish` runs the tests through `prepublishOnly`; publishing still requires the maintainer's authenticated release action. The version bump in this branch is preparation, not evidence of a published release.

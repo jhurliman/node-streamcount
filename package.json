@@ -1,6 +1,6 @@
 {
   "name": "streamcount",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "author": "John Hurliman <jhurliman@jhurliman.org> (http://jhurliman.org/)",
   "description": "Provides implementations of sketch algorithms for real-time counting of stream data. Useful for real-time web analytics and other streaming or big data scenarios.",
   "keywords": [
@@ -15,9 +15,13 @@
   "main": "./index",
   "scripts": {
     "test": "node --test test/*-test.js",
-    "bench": "node bench/repeated-updates.js"
+    "bench": "node bench/repeated-updates.js",
+    "prepublishOnly": "npm test"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node": "^24.13.4",
+    "typescript": "^7.0.2"
+  },
   "engines": {
     "node": ">=6"
   },
@@ -29,6 +33,9 @@
   "files": [
     "index.js",
     "lib/",
-    "CHANGELOG.md"
-  ]
+    "CHANGELOG.md",
+    "index.d.ts",
+    "SERIALIZATION.md"
+  ],
+  "types": "./index.d.ts"
 }
