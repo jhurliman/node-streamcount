@@ -11,4 +11,12 @@
 
 ### Release compatibility
 
-Runtime minimum becomes Node 6 because Buffer.alloc is now used; test development requires modern Node (CI: 22/24/26). Dropping previously advertised Node 0.6 support requires a major release. No version has been bumped yet. Top-k tie ordering is unspecified and may change. The existing binary format is retained; it does not record the original top-k capacity when a sketch is serialized before filling, so that capacity cannot be fully recovered. Malformed-input/deserialization validation remains a follow-up before a release is considered complete.
+Runtime minimum becomes Node 6 because Buffer.alloc is now used; test development requires modern Node (CI: 22/24/26). Dropping previously advertised Node 0.6 support requires a major release. No version has been bumped yet. Top-k tie ordering is unspecified and may change. The follow-up below adds versioned serialization and validates malformed inputs. See SERIALIZATION.md for legacy import/export and the major-release migration.
+
+## Release validation follow-up
+
+- Validate construction probabilities, allocation bounds, keys and exact serialized byte windows; reject malformed data before unbounded allocation.
+- Preserve CountMinSketch capacity in CMS2 output, read legacy bytes, and offer explicit legacy capacity/import and legacy export options. See SERIALIZATION.md.
+- Reject overflowing counters atomically and validate HLL merges before mutation.
+- Fix the signed-minimum hash bucket edge case and retain the existing mapping for all other hashes.
+- Add legacy golden fixtures and tests for truncation, malformed metadata, invalid Unicode, capacity preservation and overflow.
