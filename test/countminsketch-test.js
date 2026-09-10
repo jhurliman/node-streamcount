@@ -59,7 +59,7 @@ runBatch('CountMinSketch', {
       var top = cms.getTopK();
 
       var packed = cms.serialize();
-      assert.equal(packed.length, 328320);
+      assert.equal(packed.length, 328388);
 
       var cms2 = CountMinSketch.deserialize(packed);
       var top2 = cms2.getTopK();

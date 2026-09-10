@@ -1,4 +1,5 @@
 var HyperLogLog = require('./lib/hyperLogLog');
+var valid = require('./lib/validation');
 var CountMinSketch = require('./lib/countMinSketch');
 
 exports.createUniquesCounter = createUniquesCounter;
@@ -20,7 +21,7 @@ exports.PRNG = require('./lib/prng');
  *        tradeoff. 0.01 is the default.
  */
 function createUniquesCounter(stdError) {
-  return new HyperLogLog(stdError || 0.01);
+  return new HyperLogLog(stdError === undefined ? 0.01 : stdError);
 }
 
 /**
@@ -40,7 +41,7 @@ function createUniquesCounter(stdError) {
  *                 tradeoff. 0.0001 is the default.
  */
 function createViewsCounter(topEntryCount, errFactor, failRate) {
-  return new CountMinSketch(topEntryCount, errFactor || 0.002, failRate || 0.0001);
+  return new CountMinSketch(topEntryCount, errFactor === undefined ? 0.002 : errFactor, failRate === undefined ? 0.0001 : failRate);
 }
 
 /**
@@ -50,21 +51,19 @@ function createViewsCounter(topEntryCount, errFactor, failRate) {
  * numbers.
  */
 function getUniquesObjSize(stdError) {
-  var acc = 1.04 / stdError;
-  var k = Math.ceil(Math.log(acc * acc) / Math.LN2);
-  return 12 + Math.pow(2, k) * 4;
+  return 12 + valid.hllLayout(stdError === undefined ? 0.01 : stdError) * 4;
 }
 
 /**
  * Returns the serialized size of a views counter (CountMinSketch) object in
  * bytes given an errFactor and failRate. NOTE: This does not include the size
  * of the serialized MinHeap which includes the size of each unique ID (up to a
- * max of topEntryCount) plus 5 bytes overhead per entry. NOTE2: The memory
+ * max of topEntryCount) plus 8 bytes overhead per entry. NOTE2: The memory
  * usage will be higher than this number since we serialize 32-bit integers but
  * JavaScript uses 64-bit numbers.
  */
 function getViewsObjSize(errFactor, failRate) {
-  var depth = Math.max(Math.ceil(Math.log(1.0 / failRate)), 1);
-  var width = Math.pow(2, Math.ceil(Math.log(Math.ceil(Math.E / errFactor)) / Math.LN2));
-  return 4 + 8 + depth * width * 4 + 4 + depth * 4 + 4;
+  var layout = valid.cmsLayout(errFactor === undefined ? 0.002 : errFactor,
+                              failRate === undefined ? 0.0001 : failRate);
+  return 28 + layout.depth * layout.width * 4 + layout.depth * 4;
 }
