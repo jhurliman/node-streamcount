@@ -65,6 +65,6 @@ function getUniquesObjSize(stdError) {
  */
 function getViewsObjSize(errFactor, failRate) {
   var depth = Math.max(Math.ceil(Math.log(1.0 / failRate)), 1);
-  var width = Math.ceil(Math.E / errFactor);
+  var width = Math.pow(2, Math.ceil(Math.log(Math.ceil(Math.E / errFactor)) / Math.LN2));
   return 4 + 8 + depth * width * 4 + 4 + depth * 4 + 4;
 }

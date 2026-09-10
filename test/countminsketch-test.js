@@ -1,9 +1,9 @@
-var vows = require('vows');
+var runBatch = require('./runBatch');
 var assert = require('assert');
 
 var CountMinSketch = require('../lib/countMinSketch');
 
-vows.describe('CountMinSketch').addBatch({
+runBatch('CountMinSketch', {
   '20 videos, 0.0005 epsilon, 0.0001 delta': {
     topic: new CountMinSketch(20, 0.0005, 0.0001),
 
@@ -71,7 +71,7 @@ vows.describe('CountMinSketch').addBatch({
       }
     },
   },
-}).export(module);
+});
 
 function pad(number, length) {
   var str = '' + number;
