@@ -243,3 +243,17 @@ Version 2 writes capacity-preserving CMS2 sketches by default. Old files remain 
 TypeScript declarations cover the package root and existing class/helper deep imports. Node TypeScript projects need `@types/node`. Runtime compatibility starts at Node 6; development and the complete test suite use Node 22 or newer. CI runs the full suite on 22/24/26 and a separate Node 6 runtime smoke test.
 
 Before releasing: `npm ci`, `npm test`, then review the archive produced by `npm pack`. The test suite itself installs the archive into an independent consumer, checks CommonJS/ESM and compiles NodeNext/Node16 TypeScript fixtures. `npm publish` runs the tests through `prepublishOnly`; publishing still requires the maintainer's authenticated release action. The version bump in this branch is preparation, not evidence of a published release.
+
+### Weighted observations
+
+`counter.increment(key, incrementBy = 1)` accepts a nonnegative integer weight up to 4,294,967,295. Zero is a no-op after key validation. Negative/fractional/nonfinite values, other types and an update exceeding the uint32 counter limit throw before mutation. The implementation raises every selected sketch bucket below `minimum + incrementBy`, matching repeated unit conservative updates for that key without looping over the weight.
+
+```js
+const views = streamcount.createViewsCounter(10);
+views.increment('page-a', 250);
+views.increment('page-a'); // 251
+```
+
+Weighted observations can aggregate complete per-key counts. Replaying only each worker's top-k list loses omitted keys and is not a general merge of CountMinSketch states. Conservative sketches also cannot be assumed to equal a sketch of the concatenated stream by simply adding their cells.
+
+The weighted-increment API was proposed by Ruslan Dzhumakaliev in [PR #1](https://github.com/jhurliman/node-streamcount/pull/1). This implementation retains that use case while adding conservative-update correctness, validation, overflow handling and type coverage.

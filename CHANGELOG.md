@@ -2,6 +2,8 @@
 
 ## 2.0.0 (release candidate)
 
+- Add `increment(key, incrementBy = 1)` for nonnegative uint32 weights, with atomic overflow rejection and collision-correct conservative updates. Supersedes the weighted-increment proposal in #1; credit to Ruslan Dzhumakaliev.
+
 - Count keys such as `__proto__`, `constructor` and `toString` without interacting with Object.prototype.
 - Return independent top-k tuples so callers cannot modify internal sketch state.
 - Match serialized-size estimates to the actual power-of-two width.
