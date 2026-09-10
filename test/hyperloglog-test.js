@@ -1,9 +1,9 @@
-var vows = require('vows');
+var runBatch = require('./runBatch');
 var assert = require('assert');
 
 var HyperLogLog = require('../lib/hyperLogLog');
 
-vows.describe('HyperLogLog').addBatch({
+runBatch('HyperLogLog', {
   '1% error rate': {
     topic: new HyperLogLog(0.01),
 
@@ -107,7 +107,7 @@ vows.describe('HyperLogLog').addBatch({
       assert.equal(hll.count(), hll2.count());
     },
   },
-}).export(module);
+});
 
 function pad(number, length) {
   var str = '' + number;
