@@ -1,259 +1,177 @@
-# node-streamcount
+# streamcount
 
-[![Build Status](https://travis-ci.org/jhurliman/node-streamcount.png)](https://travis-ci.org/jhurliman/node-streamcount)
+[![CI](https://github.com/jhurliman/node-streamcount/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/jhurliman/node-streamcount/actions/workflows/ci.yml)
 
-Provides implementations of "sketch" algorithms for real-time counting of
-stream data.
+Approximate distinct counts and frequent-item tracking for streaming data, using **HyperLogLog** and a **Count-Min sketch**. Use them to estimate unique visitors or track popular pages without storing every observation.
 
-For an overview of the type of problems these algorithms solve, read
-[The Britney Spears Problem](http://www.americanscientist.org/issues/pub/the-britney-spears-problem)
-and Wikipedia's article on [Streaming algorithm](http://en.wikipedia.org/wiki/Streaming_algorithm).
+## Install
 
-The currently implemented algorithms include:
-
-* HyperLogLog
-* Count-Min sketch
-
-## Download
-
-The source is available for download from
-[GitHub](http://github.com/jhurliman/node-streamcount).
-Alternatively, you can install using Node Package Manager (npm):
-
-    npm install streamcount
-
-## Quick Example
-
-```js
-var streamcount = require('streamcount');
-
-// Create a stream counter to track unique visitors with a 1% margin of error.
-var uniques = streamcount.createUniquesCounter(0.01);
-
-// Add some observations
-uniques.add('user1');
-uniques.add('user2');
-uniques.add('user3');
-uniques.add('user2');
-
-// Prints 3.000274691735112
-console.log(uniques.count());
-
-
-// Create a stream counter to track the top 3 pages viewed on our site.
-var pageCounts = streamcount.createViewsCounter(3);
-
-// Add some observations
-pageCounts.increment('/');
-pageCounts.increment('/');
-pageCounts.increment('/product1');
-pageCounts.increment('/contact');
-pageCounts.increment('/product3');
-pageCounts.increment('/');
-pageCounts.increment('/about');
-pageCounts.increment('/about');
-pageCounts.increment('/product2');
-pageCounts.increment('/product1');
-pageCounts.increment('/');
-pageCounts.increment('/product1');
-
-// Prints [ [ 4, '/' ], [ 3, '/product1' ], [ 2, '/about' ] ]
-console.dir(pageCounts.getTopK());
+```sh
+npm install streamcount
 ```
 
-## streamcount Documentation
+CommonJS package with TypeScript declarations and a Node.js 6 runtime floor. The examples below describe the version 2 API in this repository; see [CHANGELOG.md](CHANGELOG.md) for release changes.
 
-<a name="createUniquesCounter" />
-### createUniquesCounter
-
-Creates an object for tracking the approximate total number of unique IDs
-observed. A common example is estimating the number of unique visitors to
-a website. Returns a [HyperLogLog](#HyperLogLog) object.
-
-__Arguments__
-
-* stdError - (Optional) A value from (0-1) indicating the acceptable error
-  rate. This controls the accuracy / memory usage tradeoff. 0.01 is the
-  default.
-
-<a name="createViewsCounter" />
-### createViewsCounter
-
-Creates an object for tracking estimated top view counts for many unique
-IDs. A common example is tracking the most viewed products on a website.
-Returns a [CountMinSketch](#CountMinSketch) object.
-
-__Arguments__
-
-* topEntryCount - Maximum number of top entries to return view counts for. This
-  is the maximum size of the array returned by getTopK().
-* errFactor - (Optional) The estimated view counts returned by getTopK() can be
-  off by up to this percentage (0-1). This, combined with failRate, controls
-  the accuracy / memory usage tradeoff. 0.002 is the default.
-* failRate - (Optional) The probability of getting the answer for a query
-  completely wrong. From (0-1). This, combined with errFactor, controls the
-  accuracy / memory usage tradeoff. 0.0001 is the default.
-
-<a name="getUniquesObjSize" />
-### getUniquesObjSize
-
-Returns the serialized size of a uniques counter (HyperLogLog) object in
-bytes given a stdError. __NOTE:__ The memory usage will be higher than this
-number since we serialize 32-bit integers but JavaScript uses 64-bit numbers.
-
-__Arguments__
-
-* stdError - Parameter to createUniquesCounter() to estimate storage
-  requirements for.
-
-<a name="getViewsObjSize" />
-### getViewsObjSize
-
-Returns the serialized size of a views counter (CountMinSketch) object in
-bytes given an errFactor and failRate. __NOTE:__ This does not include the size
-of the serialized MinHeap which includes the size of each unique ID (up to a
-max of topEntryCount) plus 8 bytes overhead per entry. __NOTE2:__ The memory
-usage will be higher than this number since we serialize 32-bit integers but
-JavaScript uses 64-bit numbers.
-
-__Arguments__
-
-* errFactor - Parameter to createViewsCounter() to estimate storage
-  requirements for.
-* failRate - Parameter to createViewsCounter() to estimate storage requirements
-  for.
-
-## HyperLogLog Documentation
-
-<a name="HyperLogLog" />
-### HyperLogLog
-
-Initializes a HyperLogLog object. Takes the same parameters as
-[createUniquesCounter](#createUniquesCounter).
-
-__Example__
+## Quick start
 
 ```js
-var HyperLogLog = require('streamcount').HyperLogLog;
-var uniques = new HyperLogLog();
+const streamcount = require('streamcount');
+
+// Estimate distinct visitors with a target standard error of 1%.
+const visitors = streamcount.createUniquesCounter(0.01);
+visitors.add('alice');
+visitors.add('bob');
+visitors.add('alice');
+console.log(Math.round(visitors.count())); // 2
+
+// Track up to three frequently viewed pages.
+const pages = streamcount.createViewsCounter(3);
+pages.increment('/');
+pages.increment('/products', 5);
+pages.increment('/about', 2);
+pages.increment('/');
+console.log(pages.getTopK());
+// Counts are descending; the order of ties is unspecified.
+// [[5, '/products'], [2, '/about'], [2, '/']] (ties may swap)
 ```
 
-### add
+Counts are estimates. Smaller error parameters generally require more space. The configured top-k capacity limits the number of retained keys; it does not limit how many distinct keys you can observe.
 
-Add a member to the set.
+## Create a counter
 
-__Arguments__
+### `createUniquesCounter(stdError = 0.01)`
 
-* key - String identifier to add to the set.
+Returns a HyperLogLog counter for approximate distinct counts. `stdError` is a target relative standard error, not a guaranteed bound on each result. It must be finite and strictly between 0 and 1, within the supported allocation limits.
 
-### count
+### `createViewsCounter(topEntryCount, errFactor = 0.002, failRate = 0.0001)`
 
-Count the number of unique members in the set. Returns the estimated
-cardinality of the set.
+Returns a Count-Min sketch with a bounded list of frequently observed keys.
 
-### serialize
+| Parameter | Meaning |
+| --- | --- |
+| `topEntryCount` | Maximum number of retained entries, from 1 to 1,048,576. |
+| `errFactor` | Sketch error parameter (epsilon), used to select the bucket width. Smaller values use more space. It is not a percentage-error guarantee for each returned key. |
+| `failRate` | Sketch failure-probability parameter (delta), used to select the number of rows. Smaller values use more space. |
 
-Serializes this data structure to a binary buffer. Returns a binary Buffer
-holding the serialized form of this structure.
+Both probability parameters must be finite and strictly between 0 and 1. Values that would exceed the [allocation limits](SERIALIZATION.md) are rejected. Defaults apply only when an option is omitted or `undefined`.
 
-### HyperLogLog.deserialize
-
-Static method to deserialize a binary buffer into a reconstituted HyperLogLog
-structure.
-
-__Arguments__
-
-* buffer - Binary buffer holding the serialized structure.
-* start - Starting offset of the structure in the buffer.
-* length - Length of the serialized structure in the buffer.
-
-__Example__
+The constructors are also exported. Unlike the factory helpers, they require explicit error parameters:
 
 ```js
-var uniques = HyperLogLog.deserialize(bufferData);
+const { HyperLogLog, CountMinSketch } = require('streamcount');
+
+const visitors = new HyperLogLog(0.01);
+const pages = new CountMinSketch(10, 0.002, 0.0001);
 ```
 
-### merge
+## HyperLogLog API
 
-Merge another HyperLogLog structure of the same size into this one. This makes
-it possible to keep a local HyperLogLog object in memory on each webserver, and
-periodically serialize->send->deserialize->merge the results into a single
-count.
+| Method | Behavior |
+| --- | --- |
+| `add(key)` | Observe a string identifier. Repeated identifiers do not increase the distinct count. |
+| `count()` | Return the estimated number of distinct identifiers. The result can be fractional. |
+| `merge(other)` | Merge another HyperLogLog counter with the same register count into this counter. |
+| `serialize()` | Return the counter as a binary `Buffer`. |
+| `HyperLogLog.deserialize(buffer, start?, length?)` | Restore a counter from a buffer or an exact byte window within one. |
 
-__Arguments__
-
-* hyperLogLog - The other HyperLogLog object to merge in.
-
-## CountMinSketch Documentation
-
-<a name="CountMinSketch" />
-### CountMinSketch
-
-Initializes a CountMinSketch object. Takes the same parameters as
-[createViewsCounter](#createViewsCounter).
-
-__Example__
+Use the same `stdError` when creating counters you plan to merge. For example, independent servers can send serialized visitor counters to a central aggregator:
 
 ```js
-var CountMinSketch = require('streamcount').CountMinSketch;
-var topten = new CountMinSketch(10);
+const streamcount = require('streamcount');
+
+const server = streamcount.createUniquesCounter();
+server.add('alice');
+const aggregate = streamcount.createUniquesCounter();
+aggregate.add('bob');
+aggregate.merge(streamcount.HyperLogLog.deserialize(server.serialize()));
+console.log(Math.round(aggregate.count())); // 2
 ```
 
-### increment
+## Count-Min sketch API
 
-Record an observation of the given key.
+### `increment(key, incrementBy = 1)`
 
-__Arguments__
+Record observations of a string key. The optional weight must be an integer from 0 to 4,294,967,295. Zero is a no-op after key validation. Invalid weights and updates that would overflow a counter throw before changing state.
 
-* key - String identifier to increment the observation count for.
-
-### getTopK
-
-Returns a sorted list of tuples containing the estimated frequency count
-and key for the maxEntries top observed members. Returns an array of length
-topEntryCount, containing arrays of length 2 where the first value is the
-estimated frequency count and the second value is the given key.
-
-### serialize
-
-Serializes this data structure to a binary buffer. Returns a binary Buffer
-holding the serialized form of this structure.
-
-### CountMinSketch.deserialize
-
-Static method to deserialize a binary buffer into a reconstituted
-CountMinSketch structure.
-
-__Arguments__
-
-* buffer - Binary buffer holding the serialized structure.
-* start - Starting offset of the structure in the buffer.
-* length - Length of the serialized structure in the buffer.
-
-__Example__
+Weighted updates behave like repeated single increments for that key, including when sketch buckets collide:
 
 ```js
-var pageCounts = CountMinSketch.deserialize(bufferData);
+const streamcount = require('streamcount');
+const pages = streamcount.createViewsCounter(10);
+
+pages.increment('/products', 250);
+pages.increment('/products');
+console.log(pages.getTopK()); // [[251, '/products']]
 ```
 
-## Version 2 migration and release checks
+Weighted observations can aggregate complete per-key counts. Replaying only workers' top-k lists loses omitted keys and is **not a full sketch merge**. This API does not provide a Count-Min sketch merge operation.
 
-Version 2 writes capacity-preserving CMS2 sketches by default. Old files remain readable; old readers need `serialize({ legacy: true })`. See [SERIALIZATION.md](SERIALIZATION.md) for layouts, allocation/input bounds and recovering the capacity of partially filled legacy sketches. Explicit zero/null/NaN options no longer silently select defaults.
+### `getTopK()`
 
-TypeScript declarations cover the package root and existing class/helper deep imports. Node TypeScript projects need `@types/node`. Runtime compatibility starts at Node 6; development and the complete test suite use Node 22 or newer. CI runs the full suite on 22/24/26 and a separate Node 6 runtime smoke test.
+Return up to `topEntryCount` entries, sorted by descending estimated count. Each entry is `[count, key]`. An empty counter returns `[]`, and a partially filled counter can return fewer entries than its capacity. Tie order is unspecified. Changing the returned array or its entries does not mutate the counter.
 
-Before releasing: `npm ci`, `npm test`, then review the archive produced by `npm pack`. The test suite itself installs the archive into an independent consumer, checks CommonJS/ESM and compiles NodeNext/Node16 TypeScript fixtures. `npm publish` runs the tests through `prepublishOnly`; publishing still requires the maintainer's authenticated release action. The version bump in this branch is preparation, not evidence of a published release.
+### `serialize(options?)`
 
-### Weighted observations
+Return a binary `Buffer`. The default CMS2 format preserves the configured capacity. Use `{ legacy: true }` only when an older reader needs the previous format; legacy keys are limited to 255 UTF-8 bytes.
 
-`counter.increment(key, incrementBy = 1)` accepts a nonnegative integer weight up to 4,294,967,295. Zero is a no-op after key validation. Negative/fractional/nonfinite values, other types and an update exceeding the uint32 counter limit throw before mutation. The implementation raises every selected sketch bucket below `minimum + incrementBy`, matching repeated unit conservative updates for that key without looping over the weight.
+### `CountMinSketch.deserialize(buffer, start?, length?, options?)`
+
+Read either CMS2 or legacy data. `start` defaults to 0, and `length` defaults to the remaining buffer length. Supply an exact byte window when the buffer contains other data.
+
+Legacy data does not store its original capacity. Supply `{ maxEntries: originalCapacity }` as the fourth argument to recover it. Without this option, legacy capacity defaults to the number of stored entries, or 1 for an empty sketch. CMS2 already stores capacity, so a conflicting override is rejected.
 
 ```js
-const views = streamcount.createViewsCounter(10);
-views.increment('page-a', 250);
-views.increment('page-a'); // 251
+const { createViewsCounter, CountMinSketch } = require('streamcount');
+const pages = createViewsCounter(10);
+pages.increment('/products', 25);
+
+const restored = CountMinSketch.deserialize(pages.serialize());
+console.log(restored.getTopK()); // [[25, '/products']]
+
+const legacy = pages.serialize({ legacy: true });
+const imported = CountMinSketch.deserialize(
+  legacy, undefined, undefined, { maxEntries: 10 }
+);
 ```
 
-Weighted observations can aggregate complete per-key counts. Replaying only each worker's top-k list loses omitted keys and is not a general merge of CountMinSketch states. Conservative sketches also cannot be assumed to equal a sketch of the concatenated stream by simply adding their cells.
+## Serialization and storage
 
-The weighted-increment API was proposed by Ruslan Dzhumakaliev in [PR #1](https://github.com/jhurliman/node-streamcount/pull/1). This implementation retains that use case while adding conservative-update correctness, validation, overflow handling and type coverage.
+| Helper | Result |
+| --- | --- |
+| `getUniquesObjSize(stdError = 0.01)` | Serialized HyperLogLog size in bytes. |
+| `getViewsObjSize(errFactor = 0.002, failRate = 0.0001)` | Fixed CMS2 size in bytes, excluding retained entries. Add 8 bytes plus the UTF-8 key length per retained entry. |
+
+These helpers estimate serialized storage, not JavaScript heap usage. For an existing counter, `counter.serialize().length` gives its actual serialized byte length.
+
+See [SERIALIZATION.md](SERIALIZATION.md) for binary layouts, input and allocation limits, and legacy migration details. Version 2 rejects malformed buffers, invalid Unicode keys and invalid options rather than silently selecting defaults. Old serialized data remains readable; older consumers need legacy output.
+
+## TypeScript
+
+Declarations cover the package root and the existing class/helper deep imports. Required Node typings are included as a dependency.
+
+```ts
+import { createViewsCounter } from 'streamcount';
+
+const pages = createViewsCounter(10);
+pages.increment('/products', 5);
+const entries: Array<[number, string]> = pages.getTopK();
+```
+
+## Development
+
+Use Node.js 22 or newer for development:
+
+```sh
+npm ci
+npm test
+npm run bench
+npm pack
+```
+
+[GitHub Actions](https://github.com/jhurliman/node-streamcount/actions/workflows/ci.yml) runs the full suite on Node 22, 24 and 26, plus a Node 6 runtime smoke check. Package tests install the generated archive in an independent consumer and validate CommonJS, ESM and TypeScript usage. `npm publish` runs the tests through `prepublishOnly`.
+
+## Credits and license
+
+Weighted increments were proposed by Ruslan Dzhumakaliev in [PR #1](https://github.com/jhurliman/node-streamcount/pull/1) and implemented with validation and collision handling in [PR #6](https://github.com/jhurliman/node-streamcount/pull/6).
+
+[MIT license](LICENSE.txt).
