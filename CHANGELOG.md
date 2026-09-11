@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0 (release candidate)
+## 2.0.0 — 2026-09-10
 
 - Add `increment(key, incrementBy = 1)` for nonnegative uint32 weights, with atomic overflow rejection and collision-correct conservative updates. Supersedes the weighted-increment proposal in #1; credit to Ruslan Dzhumakaliev.
 
@@ -13,7 +13,7 @@
 
 ### Release compatibility
 
-Runtime minimum becomes Node 6 because Buffer.alloc is now used; test development requires modern Node (CI: 22/24/26). Dropping previously advertised Node 0.6 support requires a major release. The package version is prepared as 2.0.0; publication is pending. Top-k tie ordering is unspecified and may change. The follow-up below adds versioned serialization and validates malformed inputs. See SERIALIZATION.md for legacy import/export and the major-release migration.
+Runtime minimum becomes Node 6 because Buffer.alloc is now used; test development requires modern Node (CI: 22/24/26). Dropping previously advertised Node 0.6 support requires a major release. Top-k tie ordering is unspecified and may change. This release adds versioned serialization and validates malformed inputs. See SERIALIZATION.md for legacy import/export and the major-release migration.
 
 ## Release validation follow-up
 
